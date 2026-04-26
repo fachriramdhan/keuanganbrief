@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Jemaat+ · Analisis Keuangan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1D9E75;
+    --green-dark: #0F6E56;
+    --green-deep: #1B4D3E;
+    --green-light: #E1F5EE;
+    --amber: #C8954A;
+    --amber-light: #FAEEDA;
+    --amber-dark: #854F0B;
+    --red: #E24B4A;
+    --red-light: #FCEBEB;
+    --red-dark: #A32D2D;
+    --bg: #F7F7F5;
+    --bg2: #EFEFED;
+    --card: #FFFFFF;
+    --border: rgba(0,0,0,0.08);
+    --text: #1A1A18;
+    --text2: #5A5A56;
+    --text3: #9A9A94;
+    --bar-h: 64px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 34px;
+    height: 34px;
+    background: var(--green-deep);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-icon svg { width: 18px; height: 18px; }
+  .logo-text { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; color: var(--text); }
+  .logo-text span { color: var(--green); }
+  .header-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  /* ── SCROLL AREA ── */
+  .scroll-area {
+    padding: 0 0 calc(var(--bar-h) + var(--safe-bottom) + 16px);
+    min-height: calc(100dvh - 56px);
+  }
+
+  /* ── PANELS ── */
+  .panel { display: none; padding: 20px 16px; animation: fadeUp .25s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SECTION LABELS ── */
+  .slbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin: 20px 0 8px;
+  }
+  .slbl:first-child { margin-top: 0; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── ROWS ── */
+  .row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--bg);
+    font-size: 13px;
+  }
+  .row:last-child { border-bottom: none; padding-bottom: 0; }
+  .row:first-of-type { padding-top: 0; }
+  .rl { color: var(--text2); flex: 1; line-height: 1.4; }
+  .rl.sub { font-size: 12px; padding-left: 12px; color: var(--text3); }
+  .rr { font-weight: 600; color: var(--text); text-align: right; flex-shrink: 0; font-size: 13px; }
+  .rr.pos { color: var(--green-dark); }
+  .rr.neg { color: var(--red-dark); }
+  .rr.warn { color: var(--amber-dark); }
+
+  /* ── METRIC GRID ── */
+  .mgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .mcard {
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .mlabel { font-size: 11px; color: var(--text3); margin-bottom: 4px; font-weight: 500; }
+  .mval { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; line-height: 1.1; }
+  .msub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .hbox {
+    background: var(--green-deep);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+  .hbox-lbl { font-size: 11px; color: rgba(255,255,255,.5); margin-bottom: 8px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; }
+  .hbox-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .hbox-old { font-size: 18px; font-weight: 600; color: rgba(255,255,255,.35); text-decoration: line-through; }
+  .hbox-new { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 500; color: #4CAF82; letter-spacing: -1px; }
+  .hbox-badge { font-size: 12px; background: rgba(76,175,130,.2); color: #4CAF82; padding: 3px 10px; border-radius: 20px; font-weight: 600; align-self: center; }
+
+  /* ── ALERTS ── */
+  .alert {
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    border-left: 3px solid;
+  }
+  .alert-green { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+  .alert-amber { background: var(--amber-light); border-color: var(--amber); color: var(--amber-dark); }
+  .alert-red { background: var(--red-light); border-color: var(--red); color: var(--red-dark); }
+
+  /* ── PAKET CARDS ── */
+  .pkg { border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .pkg-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 16px;
+    background: var(--bg2);
+  }
+  .pkg-head.featured { background: var(--green-deep); }
+  .pkg-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .pkg-head.featured .pkg-name { color: #fff; }
+  .pkg-body {
+    background: var(--card);
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .pkgm-lbl { font-size: 10px; color: var(--text3); margin-bottom: 3px; font-weight: 500; }
+  .pkgm-val { font-size: 15px; font-weight: 600; color: var(--text); }
+  .pkgm-val.pos { color: var(--green-dark); }
+  .pkgm-val.neg { color: var(--red-dark); }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .badge-green { background: var(--green-light); color: var(--green-dark); }
+  .badge-amber { background: var(--amber-light); color: var(--amber-dark); }
+  .badge-white { background: rgba(255,255,255,.2); color: #fff; }
+
+  /* ── PROGRESS BAR ── */
+  .bar-wrap { padding: 0 16px 12px; background: var(--card); }
+  .bar-lbl { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-bottom: 5px; }
+  .bar-track { height: 8px; background: var(--bg2); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: #4CAF82; }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .timeline::-webkit-scrollbar { display: none; }
+  .tl-step { flex: 0 0 90px; text-align: center; position: relative; }
+  .tl-step::before {
+    content: '';
+    position: absolute;
+    top: 13px;
+    left: 50%;
+    right: -50%;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+  }
+  .tl-step:last-child::before { display: none; }
+  .tl-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 0 auto 8px;
+    position: relative;
+    z-index: 1;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+  .tl-dot.now { background: var(--amber); border-color: var(--amber); color: #fff; }
+  .tl-dot.done { background: var(--green-deep); border-color: var(--green-deep); color: #fff; }
+  .tl-period { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); margin-bottom: 3px; }
+  .tl-label { font-size: 11px; font-weight: 600; color: var(--text); }
+  .tl-sub { font-size: 10px; color: var(--text3); line-height: 1.4; margin-top: 2px; }
+
+  /* ── SIMULATOR ── */
+  .sim-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .sim-info { flex: 1; }
+  .sim-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .sim-price { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .sim-right { display: flex; align-items: center; gap: 10px; }
+  .sim-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 28px;
+    text-align: center;
+  }
+  .sim-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background .15s;
+    flex-shrink: 0;
+  }
+  .sim-btn:active { background: var(--bg2); }
+  .sim-btn.add { background: var(--green-deep); color: #fff; border-color: var(--green-deep); }
+  .sim-btn.add:active { background: var(--green-dark); }
+
+  .result-big {
+    background: var(--green-deep);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+  .rb-lbl { font-size: 11px; color: rgba(255,255,255,.5); margin-bottom: 4px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; }
+  .rb-val { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; letter-spacing: -1px; color: #4CAF82; }
+  .rb-val.neg { color: #FF8080; }
+  .rb-sub { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 4px; }
+  .rb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.1); }
+  .rb-item-lbl { font-size: 10px; color: rgba(255,255,255,.4); margin-bottom: 3px; }
+  .rb-item-val { font-size: 15px; font-weight: 600; color: rgba(255,255,255,.9); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding: 8px 8px calc(8px + var(--safe-bottom));
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+  .nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .nav-btn.active { background: var(--green-light); }
+  .nav-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-icon svg { width: 20px; height: 20px; stroke: var(--text3); transition: stroke .15s; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn.active .nav-icon svg { stroke: var(--green-dark); }
+  .nav-label { font-size: 10px; font-weight: 500; color: var(--text3); transition: color .15s; text-align: center; line-height: 1.2; }
+  .nav-btn.active .nav-label { color: var(--green-dark); font-weight: 600; }
+
+  /* ── DEADLINE CARD ── */
+  .deadline-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--bg);
+  }
+  .deadline-row:last-child { border-bottom: none; }
+  .dl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dl-green { background: var(--green); }
+  .dl-amber { background: var(--amber); }
+  .dl-info { flex: 1; }
+  .dl-title { font-size: 13px; font-weight: 500; color: var(--text); }
+  .dl-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .dl-tag { font-size: 11px; font-weight: 600; color: var(--text2); text-align: right; flex-shrink: 0; }
+
+  /* Total highlight */
+  .total-pill {
+    background: var(--green-deep);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+  .total-pill-lbl { font-size: 12px; color: rgba(255,255,255,.6); font-weight: 500; }
+  .total-pill-val { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: #4CAF82; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    </div>
+    <span class="logo-text">Jemaat<span>+</span></span>
+  </div>
+  <span class="header-badge">Analisis Keuangan</span>
+</header>
+
+<div class="scroll-area">
+
+  <!-- ══ PANEL 1: MODAL AKTUAL ══ -->
+  <div class="panel active" id="panel-modal">
+
+    <div class="slbl">Ringkasan Modal</div>
+    <div class="mgrid">
+      <div class="mcard">
+        <div class="mlabel">Total Modal Awal</div>
+        <div class="mval">Rp5,05jt</div>
+        <div class="msub">dikeluarkan di depan</div>
+      </div>
+      <div class="mcard">
+        <div class="mlabel">Burn Rate / Bulan</div>
+        <div class="mval" style="color:var(--amber-dark)">Rp157rb</div>
+        <div class="msub">amortisasi semua biaya</div>
+      </div>
+      <div class="mcard">
+        <div class="mlabel">Runway Tanpa Revenue</div>
+        <div class="mval" style="color:var(--green-dark)">32 bln</div>
+        <div class="msub">modal ÷ burn rate</div>
+      </div>
+      <div class="mcard">
+        <div class="mlabel">BEP Minimal</div>
+        <div class="mval" style="color:var(--green-dark)">1 gereja</div>
+        <div class="msub">paket Pro sudah cukup</div>
+      </div>
+    </div>
+
+    <div class="hbox">
+      <div class="hbox-lbl">Koreksi Asumsi Burn Rate</div>
+      <div class="hbox-row">
+        <div class="hbox-old">Rp17jt</div>
+        <span style="color:rgba(255,255,255,.3);font-size:18px">→</span>
+        <div class="hbox-new">Rp157rb</div>
+        <div class="hbox-badge">108× lebih murah</div>
+      </div>
+    </div>
+
+    <div class="slbl">Rincian Pengeluaran</div>
+    <div class="card">
+      <div class="row">
+        <span class="rl">Hosting (3 tahun)</span>
+        <span class="rr">Rp4.750.000</span>
+      </div>
+      <div class="row">
+        <span class="rl sub">↳ Per bulan (÷36)</span>
+        <span class="rr warn">Rp131.944</span>
+      </div>
+      <div class="row">
+        <span class="rl">Biaya tahunan #1</span>
+        <span class="rr">Rp94.800/thn</span>
+      </div>
+      <div class="row">
+        <span class="rl sub">↳ Per bulan (÷12)</span>
+        <span class="rr">Rp7.900</span>
+      </div>
+      <div class="row">
+        <span class="rl">Biaya tahunan #2</span>
+        <span class="rr">Rp209.900/thn</span>
+      </div>
+      <div class="row">
+        <span class="rl sub">↳ Per bulan (÷12)</span>
+        <span class="rr">Rp17.491</span>
+      </div>
+      <div class="total-pill">
+        <span class="total-pill-lbl">Total Burn Rate / Bulan</span>
+        <span class="total-pill-val">Rp157.335</span>
+      </div>
+    </div>
+
+    <div class="slbl">Deadline Penting</div>
+    <div class="card">
+      <div class="deadline-row">
+        <div class="dl-dot dl-green"></div>
+        <div class="dl-info">
+          <div class="dl-title">Hosting</div>
+          <div class="dl-sub">Sudah dibayar lunas</div>
+        </div>
+        <div class="dl-tag">3 thn aman ✓</div>
+      </div>
+      <div class="deadline-row">
+        <div class="dl-dot dl-amber"></div>
+        <div class="dl-info">
+          <div class="dl-title">Renewal Biaya #1</div>
+          <div class="dl-sub">Rp94.800 perlu direnew</div>
+        </div>
+        <div class="dl-tag">1 thn lagi</div>
+      </div>
+      <div class="deadline-row">
+        <div class="dl-dot dl-amber"></div>
+        <div class="dl-info">
+          <div class="dl-title">Renewal Biaya #2</div>
+          <div class="dl-sub">Rp209.900 perlu direnew</div>
+        </div>
+        <div class="dl-tag">1 thn lagi</div>
+      </div>
+      <div class="deadline-row">
+        <div class="dl-dot dl-green"></div>
+        <div class="dl-info">
+          <div class="dl-title">Grand Total Kembali</div>
+          <div class="dl-sub">Modal + 2 renewal tahunan</div>
+        </div>
+        <div class="dl-tag" style="color:var(--green-dark)">~Rp5,36jt</div>
+      </div>
+    </div>
+
+    <div class="alert alert-green">
+      Dengan burn rate hanya Rp157rb/bulan, bahkan tanpa satu pelanggan pun modal bertahan 32 bulan. Situasi keuangan sangat sehat.
+    </div>
+
+  </div>
+
+  <!-- ══ PANEL 2: BEP PER PAKET ══ -->
+  <div class="panel" id="panel-bep">
+
+    <div class="alert alert-green">
+      Burn rate aktual Rp157.335/bln. Paket Pro sudah cukup untuk BEP hanya dengan <strong>1 gereja</strong>.
+    </div>
+
+    <div class="slbl">Analisis per Paket</div>
+
+    <div class="pkg">
+      <div class="pkg-head">
+        <span class="pkg-name">Lite — Gratis</span>
+        <span class="badge badge-amber">Tidak nutup</span>
+      </div>
+      <div class="pkg-body">
+        <div><div class="pkgm-lbl">Pendapatan</div><div class="pkgm-val neg">Rp0</div></div>
+        <div><div class="pkgm-lbl">BEP?</div><div class="pkgm-val neg">Tidak</div></div>
+        <div><div class="pkgm-lbl">Fungsi</div><div class="pkgm-val" style="font-size:13px">Akuisisi</div></div>
+        <div><div class="pkgm-lbl">Konversi ke Pro</div><div class="pkgm-val" style="font-size:13px">Target 15–25%</div></div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <div class="pkg-head featured">
+        <span class="pkg-name">Pro — Rp199.000/bln ⭐</span>
+        <span class="badge badge-white">BEP = 1 gereja!</span>
+      </div>
+      <div class="pkg-body">
+        <div><div class="pkgm-lbl">1 gereja bayar</div><div class="pkgm-val">Rp199.000</div></div>
+        <div><div class="pkgm-lbl">Profit bersih</div><div class="pkgm-val pos">+Rp41.665</div></div>
+        <div><div class="pkgm-lbl">5 gereja profit</div><div class="pkgm-val pos">Rp837rb/bln</div></div>
+        <div><div class="pkgm-lbl">Modal balik (10 gj)</div><div class="pkgm-val pos">~3 bulan</div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-lbl"><span>1 gereja sudah nutup 100% biaya</span><span>100%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <div class="pkg-head">
+        <span class="pkg-name">Premium — Rp499.000/bln</span>
+        <span class="badge badge-green">Profit besar</span>
+      </div>
+      <div class="pkg-body">
+        <div><div class="pkgm-lbl">1 gereja bayar</div><div class="pkgm-val">Rp499.000</div></div>
+        <div><div class="pkgm-lbl">Profit bersih</div><div class="pkgm-val pos">+Rp341.665</div></div>
+        <div><div class="pkgm-lbl">Modal balik</div><div class="pkgm-val pos">~1,5 bulan</div></div>
+        <div><div class="pkgm-lbl">3 gereja / bln</div><div class="pkgm-val pos">Rp1,34jt</div></div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <div class="pkg-head">
+        <span class="pkg-name">Ultimate — Rp969.000/bln</span>
+        <span class="badge badge-green">Profit terbesar</span>
+      </div>
+      <div class="pkg-body">
+        <div><div class="pkgm-lbl">1 gereja bayar</div><div class="pkgm-val">Rp969.000</div></div>
+        <div><div class="pkgm-lbl">Profit bersih</div><div class="pkgm-val pos">+Rp811.665</div></div>
+        <div><div class="pkgm-lbl">Modal balik</div><div class="pkgm-val pos">~7 bulan</div></div>
+        <div><div class="pkgm-lbl">Margin</div><div class="pkgm-val pos">~97%</div></div>
+      </div>
+    </div>
+
+    <div class="slbl">Skenario Modal Kembali</div>
+    <div class="card">
+      <div class="card-title">Berapa lama Rp5,05jt kembali?</div>
+      <div class="row"><span class="rl">5 gereja Pro → profit Rp837rb/bln</span><span class="rr warn">~6 bulan</span></div>
+      <div class="row"><span class="rl">10 gereja Pro → profit Rp1,83jt/bln</span><span class="rr pos">~3 bulan</span></div>
+      <div class="row"><span class="rl">3 gereja Premium → profit Rp1,34jt/bln</span><span class="rr pos">~4 bulan</span></div>
+      <div class="row"><span class="rl">5 Pro + 2 Premium → profit Rp1,84jt/bln</span><span class="rr pos">~3 bulan</span></div>
+      <div class="row"><span class="rl">1 gereja Ultimate → profit Rp812rb/bln</span><span class="rr warn">~7 bulan</span></div>
+    </div>
+
+  </div>
+
+  <!-- ══ PANEL 3: SIMULATOR ══ -->
+  <div class="panel" id="panel-sim">
+
+    <div class="slbl">Atur Jumlah Gereja</div>
+
+    <div class="sim-row">
+      <div class="sim-info">
+        <div class="sim-name">⭐ Pro</div>
+        <div class="sim-price">Rp199.000 / bulan</div>
+      </div>
+      <div class="sim-right">
+        <button class="sim-btn" onclick="change('pro',-1)">−</button>
+        <span class="sim-count" id="cnt-pro">5</span>
+        <button class="sim-btn add" onclick="change('pro',1)">+</button>
+      </div>
+    </div>
+
+    <div class="sim-row">
+      <div class="sim-info">
+        <div class="sim-name">Premium</div>
+        <div class="sim-price">Rp499.000 / bulan</div>
+      </div>
+      <div class="sim-right">
+        <button class="sim-btn" onclick="change('prem',-1)">−</button>
+        <span class="sim-count" id="cnt-prem">2</span>
+        <button class="sim-btn add" onclick="change('prem',1)">+</button>
+      </div>
+    </div>
+
+    <div class="sim-row">
+      <div class="sim-info">
+        <div class="sim-name">Ultimate</div>
+        <div class="sim-price">Rp969.000 / bulan</div>
+      </div>
+      <div class="sim-right">
+        <button class="sim-btn" onclick="change('ult',-1)">−</button>
+        <span class="sim-count" id="cnt-ult">0</span>
+        <button class="sim-btn add" onclick="change('ult',1)">+</button>
+      </div>
+    </div>
+
+    <div class="result-big">
+      <div class="rb-lbl">Profit Bersih / Bulan</div>
+      <div class="rb-val" id="res-profit">+Rp1,84jt</div>
+      <div class="rb-sub" id="res-sub">setelah biaya Rp157.335</div>
+      <div class="rb-grid">
+        <div>
+          <div class="rb-item-lbl">MRR Total</div>
+          <div class="rb-item-val" id="res-mrr">Rp1,99jt</div>
+        </div>
+        <div>
+          <div class="rb-item-lbl">ARR (× 12)</div>
+          <div class="rb-item-val" id="res-arr">Rp23,9jt</div>
+        </div>
+        <div>
+          <div class="rb-item-lbl">Modal Balik</div>
+          <div class="rb-item-val" id="res-balik">~3 bulan</div>
+        </div>
+        <div>
+          <div class="rb-item-lbl">Total Gereja</div>
+          <div class="rb-item-val" id="res-total">7 gereja</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="res-alert" class="alert alert-green"></div>
+
+    <div class="slbl">Target Kumulatif</div>
+    <div class="card">
+      <div class="card-title">Rp5.359.400 total harus kembali</div>
+      <div class="row"><span class="rl">BEP bulanan minimal</span><span class="rr pos">1 gereja Pro</span></div>
+      <div class="row"><span class="rl">Modal kembali cepat</span><span class="rr pos">10 Pro → 3 bulan</span></div>
+      <div class="row"><span class="rl">Target profit ideal (bln 6)</span><span class="rr pos">20 Pro + 5 Prem</span></div>
+      <div class="row"><span class="rl">Profit target itu</span><span class="rr pos">~Rp6,3jt/bln</span></div>
+    </div>
+
+  </div>
+
+  <!-- ══ PANEL 4: TIMELINE ══ -->
+  <div class="panel" id="panel-tl">
+
+    <div class="slbl">Roadmap 2 Tahun — Amri</div>
+    <div class="card" style="padding:16px 16px 20px">
+      <div class="timeline">
+        <div class="tl-step">
+          <div class="tl-dot now">1</div>
+          <div class="tl-period">Bln 1–2</div>
+          <div class="tl-label">Launch</div>
+          <div class="tl-sub">1 pelanggan = BEP</div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-dot">2</div>
+          <div class="tl-period">Bln 3–4</div>
+          <div class="tl-label">Balik Modal</div>
+          <div class="tl-sub">5 gereja → Rp5jt balik</div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-dot">3</div>
+          <div class="tl-period">Bln 5–8</div>
+          <div class="tl-label">Growth</div>
+          <div class="tl-sub">10–20 gereja profit</div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-dot">4</div>
+          <div class="tl-period">Bln 9–18</div>
+          <div class="tl-label">Skala</div>
+          <div class="tl-sub">50+ gereja, hire</div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-dot">5</div>
+          <div class="tl-period">Thn 2–3</div>
+          <div class="tl-label">Renewal Aman</div>
+          <div class="tl-sub">Hosting tercover profit</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slbl">Kapan Upgrade Hosting Diperlukan?</div>
+    <div class="card">
+      <div class="card-title">Skenario scale-up infrastruktur</div>
+      <div class="row"><span class="rl">Hosting aman sampai</span><span class="rr pos">~50+ concurrent user</span></div>
+      <div class="row"><span class="rl">Perlu upgrade jika</span><span class="rr warn">50+ gereja aktif serentak</span></div>
+      <div class="row"><span class="rl">Estimasi biaya tambahan</span><span class="rr">Rp200–500rb/bln</span></div>
+      <div class="row"><span class="rl">Bisa bayar dari profit jika</span><span class="rr pos">5+ gereja Pro bayar</span></div>
+      <div class="row"><span class="rl">Artinya</span><span class="rr pos">Upgrade = tanda sukses</span></div>
+    </div>
+
+    <div class="slbl">Asumsi Lama vs Realita</div>
+    <div class="card">
+      <div class="row"><span class="rl">Burn rate asumsi lama</span><span class="rr neg">Rp17.000.000/bln</span></div>
+      <div class="row"><span class="rl">Burn rate aktual</span><span class="rr pos">Rp157.335/bln</span></div>
+      <div class="row"><span class="rl">BEP asumsi lama</span><span class="rr neg">~85 gereja</span></div>
+      <div class="row"><span class="rl">BEP aktual</span><span class="rr pos">1 gereja Pro</span></div>
+      <div class="row"><span class="rl">Runway tanpa revenue</span><span class="rr pos">32 bulan!</span></div>
+    </div>
+
+    <div class="alert alert-green">
+      Tekanan waktu sangat rendah. Fokus tim bisa sepenuhnya ke pertumbuhan, bukan survival.
+    </div>
+
+  </div>
+
+</div><!-- end scroll-area -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-modal" onclick="goTab('modal')">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    </div>
+    <span class="nav-label">Modal</span>
+  </button>
+  <button class="nav-btn" id="nav-bep" onclick="goTab('bep')">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </div>
+    <span class="nav-label">BEP Paket</span>
+  </button>
+  <button class="nav-btn" id="nav-sim" onclick="goTab('sim')">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+    </div>
+    <span class="nav-label">Simulator</span>
+  </button>
+  <button class="nav-btn" id="nav-tl" onclick="goTab('tl')">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+    </div>
+    <span class="nav-label">Timeline</span>
+  </button>
+</nav>
+
+<script>
+  // ── NAVIGATION ──
+  const PANELS = ['modal','bep','sim','tl'];
+  function goTab(id) {
+    PANELS.forEach(p => {
+      document.getElementById('panel-'+p).classList.remove('active');
+      document.getElementById('nav-'+p).classList.remove('active');
+    });
+    document.getElementById('panel-'+id).classList.add('active');
+    document.getElementById('nav-'+id).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  // ── SIMULATOR ──
+  const counts = { pro: 5, prem: 2, ult: 0 };
+  const BURN = 157335;
+  const MODAL_TOTAL = 5359400;
+
+  function change(key, delta) {
+    counts[key] = Math.max(0, counts[key] + delta);
+    document.getElementById('cnt-'+key).textContent = counts[key];
+    calc();
+  }
+
+  function fmt(n) {
+    const abs = Math.abs(n);
+    let s;
+    if (abs >= 1000000) s = 'Rp' + (abs/1000000).toFixed(2).replace(/\.?0+$/,'') + 'jt';
+    else if (abs >= 1000) s = 'Rp' + Math.round(abs/1000) + 'rb';
+    else s = 'Rp' + Math.round(abs);
+    return n < 0 ? '−' + s : s;
+  }
+
+  function calc() {
+    const mrr   = counts.pro*199000 + counts.prem*499000 + counts.ult*969000;
+    const profit = mrr - BURN;
+    const total  = counts.pro + counts.prem + counts.ult;
+    const arr    = mrr * 12;
+
+    const profitEl = document.getElementById('res-profit');
+    profitEl.textContent = (profit >= 0 ? '+' : '−') + fmt(Math.abs(profit)).replace('Rp','Rp');
+    profitEl.className = 'rb-val' + (profit < 0 ? ' neg' : '');
+
+    document.getElementById('res-mrr').textContent = fmt(mrr);
+    document.getElementById('res-arr').textContent = fmt(arr);
+    document.getElementById('res-total').textContent = total + ' gereja';
+
+    const alertEl = document.getElementById('res-alert');
+
+    if (profit <= 0) {
+      document.getElementById('res-balik').textContent = '—';
+      document.getElementById('res-sub').textContent = 'belum BEP — tambah gereja lagi';
+      const need = Math.ceil(Math.abs(profit)/199000);
+      alertEl.className = 'alert alert-red';
+      alertEl.innerHTML = '<strong>Belum BEP.</strong> Butuh ' + need + ' gereja Pro lagi untuk impas. Tenang — runway masih 32+ bulan.';
+    } else {
+      const bulan = Math.ceil(MODAL_TOTAL / profit);
+      document.getElementById('res-balik').textContent = '~' + bulan + ' bulan';
+      document.getElementById('res-sub').textContent = 'setelah biaya Rp157.335';
+      if (profit < 500000) {
+        alertEl.className = 'alert alert-amber';
+        alertEl.innerHTML = '<strong>Sudah BEP.</strong> Profit tipis ' + fmt(profit) + '/bln. Modal balik ~' + bulan + ' bulan. Tambah terus!';
+      } else {
+        alertEl.className = 'alert alert-green';
+        alertEl.innerHTML = '<strong>Profit sehat!</strong> ' + fmt(profit) + '/bln bersih dari ' + total + ' gereja. Modal Rp5jt kembali dalam ' + bulan + ' bulan.';
+      }
+    }
+  }
+
+  calc();
+</script>
+</body>
+</html>
